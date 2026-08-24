@@ -135,7 +135,7 @@ void sudoku_solver(int32_t *board);
 1. 安裝 [GitHub CLI](https://cli.github.com/) 與 Classroom50 student extension：
 
    ```sh
-   gh extension install foundation50/gh-student --pin v1.32.0
+   gh extension install foundation50/gh-student --pin v1.33.0
    gh student login
    ```
 
@@ -161,19 +161,19 @@ void sudoku_solver(int32_t *board);
 
 提交後，Classroom50 會建立 `submit/...` tag，啟動自動批改，並在 GitHub Release 顯示總分與
 逐案例回饋。本作業截止時間為 **2026 年 10 月 21 日 23:59:00（臺灣時間，UTC+8；對應
-`2026-10-21T15:59:00Z`）**。助教執行 **Close submission** 後會鎖定正常提交介面；
-runner 在作業鎖定時不會批改或發布新的 submission。正式截止判定也不只依賴介面狀態：
-成績 collector 會以 GitHub Actions 伺服器記錄的 submission workflow run `created_at` 檢查
-截止時間。只有 tag 與 commit 可對應該次 run，且 `created_at` 小於或等於截止時間的
-`submit/*` submission 才可列入正式成績；截止後直接建立或重推 tag、workflow 或 Release
-均不採計。
+`2026-10-21T15:59:00Z`）**。請在截止前完成 `gh student submit`，並確認 GitHub Actions
+成功且 Release 顯示預期的 commit。助教執行 **Close submission** 後會鎖定 Classroom50 的
+正常接受與提交介面，但既有 Git repository 並不會因此變成唯讀。
 
-正式成績是上述合格 submission 中，依伺服器收件時間最後一筆成功批改的結果。截止前已
-取得有效收件紀錄的 submission 可在截止後完成批改；助教重批既有 submission 時仍沿用
-其原始收件紀錄，不會把截止後的新 commit 當成舊 submission。本課不採 commit
-author／committer 日期，也不採本機結果。Classroom50 的學生 repository、workflow 與 Release
-並非密碼學上的成績來源證明；這是本課採用平台時已接受的限制。若提交結果可疑，助教可用
-同一個正式 image digest 重現批改以進行調查，但不會因此選擇性更換計分版本。
+目前採用 Classroom50 官方 Skeleton：畫面中的提交時間取自受批改 commit 的 committer date，
+`late` 僅為提示；`locked` 與 `due` 也不是 runner 強制執行的安全邊界。因此，截止後即使因
+GitHub 或 tag 操作而出現新的 Actions／Release，也不代表課程正式接受該次提交。請勿在截止後
+新增或重推 `submit/*` tag、workflow 或 Release。正式成績的截止稽核與選取方式將依課程另行
+公告的成績流程辦理；Classroom50 即時結果與本機結果都不得自行視為覆蓋正式成績的依據。
+
+Classroom50 的學生 repository、workflow 與 Release 並非密碼學上的成績來源證明。若提交結果
+可疑，助教可用同一個正式 image digest 重現批改以進行調查；若批改器版本需要變更，則必須
+對全班採用一致版本重新批改。
 
 詳細操作請參考 [Classroom50 Student Guide](https://github.com/foundation50/classroom50/wiki/CLI-Student-Guide)。
 
