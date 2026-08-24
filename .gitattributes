@@ -1,0 +1,12 @@
+* text=auto
+.gitattributes text eol=lf
+
+# Student development is performed in WSL/Linux containers. Keep executable
+# scripts and source/build files on LF even if the repository is cloned by
+# Git for Windows before being opened from WSL.
+*.sh text eol=lf
+*.S text eol=lf
+*.c text eol=lf
+*.h text eol=lf
+*.cmake text eol=lf
+CMakeLists.txt text eol=lf
