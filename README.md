@@ -29,7 +29,7 @@ docker pull ghcr.io/computer-organization-at-ncku-ee/co-docker-env:latest
 ```
 
 這個 `co-docker-env:latest` 映像只供學生互動式開發。正式批改使用另一個公開映像
-`ghcr.io/computer-organization-at-ncku-ee/co-lab2-grader-v2@sha256:<助教公告的 digest>`，並鎖定不可變的
+`ghcr.io/computer-organization-at-ncku-ee/co-lab2-grader-v2@sha256:f0ff938b7c554c1d021d5e91e31dfcbaeb810b88892dec6c0c404fac530b42db`，並鎖定不可變的
 digest，不會在批改時臨時使用最新版或 release tag。
 
 ### 3. 建立並進入課程容器
@@ -135,14 +135,14 @@ void sudoku_solver(int32_t *board);
 1. 安裝 [GitHub CLI](https://cli.github.com/) 與 Classroom50 student extension：
 
    ```sh
-   gh extension install foundation50/gh-student
+   gh extension install foundation50/gh-student --pin v1.32.0
    gh student login
    ```
 
 2. 接受 `Computer-Organization-at-NCKU-EE` 中的正式 Lab 2 作業：
 
    ```sh
-   gh student accept Computer-Organization-at-NCKU-EE Classroom-Beta lab2
+   gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2
    ```
 
 3. 完成修改後先保存進度：
@@ -160,11 +160,20 @@ void sudoku_solver(int32_t *board);
    ```
 
 提交後，Classroom50 會建立 `submit/...` tag，啟動自動批改，並在 GitHub Release 顯示總分與
-逐案例回饋。截止時間本身只標示遲交；助教執行 **Close submission** 後才會停止接受新版本。
-正式成績以平台在 **Close submission 前接受且成功完成批改的最後一次 submission event**
-為準，不採 commit 日期，也不採本機結果。Classroom50 的學生 repository、workflow 與
-Release 並非密碼學上的成績來源證明；這是本課採用平台時已接受的限制。若提交結果可疑，
-助教可用同一個正式 image digest 重現批改以進行調查，但不會因此選擇性更換計分版本。
+逐案例回饋。本作業截止時間為 **2026 年 10 月 21 日 23:59:00（臺灣時間，UTC+8；對應
+`2026-10-21T15:59:00Z`）**。助教執行 **Close submission** 後會鎖定正常提交介面；
+runner 在作業鎖定時不會批改或發布新的 submission。正式截止判定也不只依賴介面狀態：
+成績 collector 會以 GitHub Actions 伺服器記錄的 submission workflow run `created_at` 檢查
+截止時間。只有 tag 與 commit 可對應該次 run，且 `created_at` 小於或等於截止時間的
+`submit/*` submission 才可列入正式成績；截止後直接建立或重推 tag、workflow 或 Release
+均不採計。
+
+正式成績是上述合格 submission 中，依伺服器收件時間最後一筆成功批改的結果。截止前已
+取得有效收件紀錄的 submission 可在截止後完成批改；助教重批既有 submission 時仍沿用
+其原始收件紀錄，不會把截止後的新 commit 當成舊 submission。本課不採 commit
+author／committer 日期，也不採本機結果。Classroom50 的學生 repository、workflow 與 Release
+並非密碼學上的成績來源證明；這是本課採用平台時已接受的限制。若提交結果可疑，助教可用
+同一個正式 image digest 重現批改以進行調查，但不會因此選擇性更換計分版本。
 
 詳細操作請參考 [Classroom50 Student Guide](https://github.com/foundation50/classroom50/wiki/CLI-Student-Guide)。
 
