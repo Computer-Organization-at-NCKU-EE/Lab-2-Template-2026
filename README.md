@@ -23,11 +23,21 @@ Windows 請在 WSL 執行。若以前已 clone `Docker-Environment`，不必重�
 
 ### 2. 在課程 container 登入 Classroom50
 
+官方課程 image 目前沒有預裝 GitHub CLI，因此第一次建立 container 時先執行：
+
 ```sh
+sudo apt-get update
+sudo apt-get install -y gh
+gh auth login --hostname github.com --git-protocol https --web
 gh extension install foundation50/gh-student --pin v1.33.0
 gh student login
+gh auth status
 gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2
 ```
+
+`sudo` 若詢問課程 container 密碼，請輸入 `1234`。GitHub 可能先後顯示兩次 device code；
+兩次都應在瀏覽器登入**自己的學生帳號**完成授權。最後用 `gh auth status` 確認 Active account
+確實是本人，再執行 `accept`。
 
 `accept` 會建立你的 private repository，並在最後印出 `git clone` 指令。請執行畫面印出的
 指令，再進入剛建立的 repository：
@@ -50,27 +60,38 @@ asm-prog-assignment/sudoku.S
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target ArraySort Sudoku --parallel
-bash ./grade-local.sh
 ```
 
-本機結果用於除錯；Classroom50 的批改結果才是線上提交結果。
+這一步只確認兩份程式能組譯與連結。正式的 43 項完整測試由 Classroom50 在 submit 後執行。
+課程 container 內沒有 Docker daemon，因此**不要在 container 內執行 `grade-local.sh`**；它不是
+學生完成本作業的必要步驟。
 
 ### 5. Commit、push，然後正式 submit
 
 ```sh
+git config user.name "你的 GitHub 帳號"
+git config user.email "你的電子郵件"
 git add asm-prog-assignment/merge.S asm-prog-assignment/sudoku.S
 git commit -m "Complete Lab 2"
 git push
 gh student submit
 ```
 
+第一次 commit 前，請把前兩行引號內的內容換成自己的資料；這只設定目前的 Lab 2 repository。
 **只有 `git push` 不會觸發本作業的正式批改。**每次修改後若要取得新分數，都必須再執行
 一次 `gh student submit`。
 
 ### 6. 查看批改結果
 
-`gh student submit` 完成後會顯示 Actions 與 Releases 連結。請先確認 Actions 成功，再到
-最新的 GitHub Release 查看總分與 43 個測試結果。通常需要等待一至數分鐘。
+`gh student submit` 完成後會顯示 Actions 與 Releases 連結。也可以執行：
+
+```sh
+gh run list --workflow autograde.yaml --limit 3
+```
+
+請先確認最新的 Actions run 成功，再到最新 GitHub Release 查看總分與 43 個測試結果。
+通常需要等待一至數分鐘。若長時間停在 `queued`，先查看
+[GitHub Status](https://www.githubstatus.com/)，不要連續重複 submit。
 
 ## 你要修改的檔案
 
@@ -80,7 +101,7 @@ gh student submit
 - `asm-prog-assignment/sudoku.S`
 
 請勿修改 `.classroom50.yaml`、`.github/` 或嘗試產生自己的 `result.json`。其他檔案可用於
-本機閱讀與練習，但不列入正式提交內容。
+本機閱讀、建置與練習，並會保留在你的 repository；正式 grader 只讀取上述兩個固定路徑。
 
 ## 開發環境
 
@@ -116,8 +137,9 @@ Desktop 執行架構模擬。
 
 ### 4. 在容器內取得個人作業
 
-執行 `gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2` 後，使用它印出的
-網址 clone 個人的 private repository，並在該目錄工作：
+先依上方 Quick Start 的步驟 2 完成 GitHub CLI 安裝與登入。執行
+`gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2` 後，使用它印出的網址
+clone 個人的 private repository，並在該目錄工作：
 
 ```sh
 cd /home/ubuntu/workspace
@@ -138,10 +160,9 @@ cmake --build build --target ArraySort Sudoku --parallel
 基本 smoke test；正式分數以 Classroom50 的逐案例結果為準。本 repository 不再建置學生
 自己的 ISS，也沒有會無限等待 guest halt 的舊版 checker。
 
-作業正式發布後，也可以在 repository 根目錄執行 `bash ./grade-local.sh`，使用與 Classroom50
-相同且已鎖定 digest 的 Lab 2 grader image。結果會寫入 `grading-output/`；本機結果只供除錯
-與複查，不得用來覆蓋正式成績。若助教確認批改器有缺陷，必須以同一新版批改器重批全班，
-不會只替個別學生改用本機結果。
+`grade-local.sh` 是需要 Docker daemon 的選用工具，無法直接在上述課程 container 內執行，
+也不是學生完成作業的必要步驟。學生只需完成本節的 CMake smoke test，再用 Classroom50
+取得正式完整測試結果。若助教另外要求使用本機 grader，會提供獨立操作方式。
 
 ## 題目一：Array Sort
 
@@ -202,20 +223,10 @@ void sudoku_solver(int32_t *board);
 
 本作業採 **submit-only** 模式；一般 `git push` 只備份進度，不會產生正式分數。
 
-1. 安裝 [GitHub CLI](https://cli.github.com/) 與 Classroom50 student extension：
+第一次接受作業請完整依照本文件最前面的 Quick Start；不要跳過安裝、登入或帳號確認。
+之後每次要取得新分數時，在個人作業 repository 內依序執行：
 
-   ```sh
-   gh extension install foundation50/gh-student --pin v1.33.0
-   gh student login
-   ```
-
-2. 接受 `Computer-Organization-at-NCKU-EE` 中的正式 Lab 2 作業：
-
-   ```sh
-   gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2
-   ```
-
-3. 完成修改後先保存進度：
+1. 先完成修改與 CMake build，再保存進度：
 
    ```sh
    git add asm-prog-assignment/merge.S asm-prog-assignment/sudoku.S
@@ -223,10 +234,16 @@ void sudoku_solver(int32_t *board);
    git push
    ```
 
-4. 在 repository 內建立正式提交：
+2. 建立正式提交：
 
    ```sh
    gh student submit
+   ```
+
+3. 查看最新批改狀態：
+
+   ```sh
+   gh run list --workflow autograde.yaml --limit 3
    ```
 
 提交後，Classroom50 會建立 `submit/...` tag，啟動自動批改，並在 GitHub Release 顯示總分與
@@ -251,6 +268,7 @@ SHA、Actions URL、Release URL 及錯誤畫面，再聯絡助教。
 - 沒有新增 `.include`、`.incbin`、額外 runtime dependency 或學生版 ISS。
 - 已 push 最新 commit，並另執行一次 `gh student submit`。
 - GitHub Actions 完成，Release 顯示的是預期 commit，而非較舊版本。
+- 若 `git status` 顯示本機 branch 落後遠端，下一次修改前先執行 `git pull --ff-only`。
 
 ## Template provenance
 
