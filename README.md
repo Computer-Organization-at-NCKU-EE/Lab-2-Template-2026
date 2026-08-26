@@ -75,11 +75,13 @@ git add asm-prog-assignment/merge.S asm-prog-assignment/sudoku.S
 git commit -m "Complete Lab 2"
 git push
 gh student submit
+git pull --ff-only
 ```
 
 第一次 commit 前，請把前兩行引號內的內容換成自己的資料；這只設定目前的 Lab 2 repository。
 **只有 `git push` 不會觸發本作業的正式批改。**每次修改後若要取得新分數，都必須再執行
-一次 `gh student submit`。
+一次 `gh student submit`。最後的 `git pull --ff-only` 會同步 Classroom50 建立的 submission
+snapshot，避免下一次 push 出現 non-fast-forward。
 
 ### 6. 查看批改結果
 
@@ -238,6 +240,7 @@ void sudoku_solver(int32_t *board);
 
    ```sh
    gh student submit
+   git pull --ff-only
    ```
 
 3. 查看最新批改狀態：
