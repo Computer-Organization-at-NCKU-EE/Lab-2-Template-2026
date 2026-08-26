@@ -3,6 +3,75 @@
 本作業只評量兩個 RV32I 組合語言函式。**不需繳交 Report，也不需加入、修改或繳交
 ISA Simulator。**正式批改使用助教固定版本的工具鏈與模擬器。
 
+## Quick Start：學生完整操作流程
+
+這份作業使用 Classroom50 官方流程。第一次操作時，請依序完成以下步驟；不要直接在公開
+Template repository 作答。
+
+### 1. 在 WSL／Terminal 啟動課程 Docker 環境
+
+```sh
+docker pull ghcr.io/computer-organization-at-ncku-ee/co-docker-env:latest
+git clone https://github.com/Computer-Organization-at-NCKU-EE/Docker-Environment.git
+cd Docker-Environment
+./create.sh comporg
+./attach.sh
+```
+
+Windows 請在 WSL 執行。若以前已 clone `Docker-Environment`，不必重複 clone，直接進入該
+目錄並使用既有腳本即可。
+
+### 2. 在課程 container 登入 Classroom50
+
+```sh
+gh extension install foundation50/gh-student --pin v1.33.0
+gh student login
+gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2
+```
+
+`accept` 會建立你的 private repository，並在最後印出 `git clone` 指令。請執行畫面印出的
+指令，再進入剛建立的 repository：
+
+```sh
+cd /home/ubuntu/workspace
+git clone <accept 指令顯示的 repository URL>
+cd <你的 Lab 2 repository>
+```
+
+### 3. 只修改兩個指定檔案
+
+```text
+asm-prog-assignment/merge.S
+asm-prog-assignment/sudoku.S
+```
+
+### 4. 建置並進行本機測試
+
+```sh
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build --target ArraySort Sudoku --parallel
+bash ./grade-local.sh
+```
+
+本機結果用於除錯；Classroom50 的批改結果才是線上提交結果。
+
+### 5. Commit、push，然後正式 submit
+
+```sh
+git add asm-prog-assignment/merge.S asm-prog-assignment/sudoku.S
+git commit -m "Complete Lab 2"
+git push
+gh student submit
+```
+
+**只有 `git push` 不會觸發本作業的正式批改。**每次修改後若要取得新分數，都必須再執行
+一次 `gh student submit`。
+
+### 6. 查看批改結果
+
+`gh student submit` 完成後會顯示 Actions 與 Releases 連結。請先確認 Actions 成功，再到
+最新的 GitHub Release 查看總分與 43 個測試結果。通常需要等待一至數分鐘。
+
 ## 你要修改的檔案
 
 只能在下列兩個固定路徑完成作業；檔名與大小寫不可變更：
@@ -47,7 +116,8 @@ Desktop 執行架構模擬。
 
 ### 4. 在容器內取得個人作業
 
-依 Classroom50 顯示的網址 clone 個人的 private repository，並在該目錄工作：
+執行 `gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2` 後，使用它印出的
+網址 clone 個人的 private repository，並在該目錄工作：
 
 ```sh
 cd /home/ubuntu/workspace
@@ -165,15 +235,12 @@ void sudoku_solver(int32_t *board);
 成功且 Release 顯示預期的 commit。助教執行 **Close submission** 後會鎖定 Classroom50 的
 正常接受與提交介面，但既有 Git repository 並不會因此變成唯讀。
 
-目前採用 Classroom50 官方 Skeleton：畫面中的提交時間取自受批改 commit 的 committer date，
-`late` 僅為提示；`locked` 與 `due` 也不是 runner 強制執行的安全邊界。因此，截止後即使因
-GitHub 或 tag 操作而出現新的 Actions／Release，也不代表課程正式接受該次提交。請勿在截止後
-新增或重推 `submit/*` tag、workflow 或 Release。正式成績的截止稽核與選取方式將依課程另行
-公告的成績流程辦理；Classroom50 即時結果與本機結果都不得自行視為覆蓋正式成績的依據。
+本作業使用 Classroom50 官方 Skeleton。一般 `git push` 只保存進度；`gh student submit`
+才會建立本作業需要的 submission tag、執行完整批改並發布新的成績 Release。Regrade 只會
+重新批改既有 submission，不會自動批改你在 `main` 上尚未 submit 的新 commit。
 
-Classroom50 的學生 repository、workflow 與 Release 並非密碼學上的成績來源證明。若提交結果
-可疑，助教可用同一個正式 image digest 重現批改以進行調查；若批改器版本需要變更，則必須
-對全班採用一致版本重新批改。
+截止後是否接受提交與正式成績選取方式，以課程公告為準。遇到提交異常時，請保留 commit
+SHA、Actions URL、Release URL 及錯誤畫面，再聯絡助教。
 
 詳細操作請參考 [Classroom50 Student Guide](https://github.com/foundation50/classroom50/wiki/CLI-Student-Guide)。
 
