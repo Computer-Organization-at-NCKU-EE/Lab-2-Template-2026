@@ -3,14 +3,39 @@
 本作業只評量兩個 RV32I 組合語言函式。**不需繳交 Report，也不需加入、修改或繳交
 ISA Simulator。**正式批改使用助教固定版本的工具鏈與模擬器。
 
-## Quick Start：學生完整操作流程
+## Quick Start：只在課程容器內完成作業
 
-這份作業使用 Classroom50 官方流程。第一次操作時，請依序完成以下步驟；不要直接在公開
-Template repository 作答。
+本作業使用 Classroom50 官方流程。**作業只 clone 一次，之後在同一個課程容器、
+同一份資料夾中編輯、編譯與提交。**不要 clone 公開 Template 來作答。
 
-### 1. 在 WSL／Terminal 啟動課程 Docker 環境
+```text
+WSL／主機 Terminal：啟動課程容器
+                 ↓
+VS Code 連入課程容器：登入 → 接受作業 → clone → 編輯 → 編譯 → 提交
+                 ↓
+瀏覽器：查看 Classroom50／GitHub 批改結果
+```
+
+### 1. [主機] 啟動課程容器
+
+先安裝 Docker、Git、VS Code 與 VS Code 的 **Dev Containers** 擴充套件。
+Windows 另外需要 WSL，並在 Docker Desktop 啟用該 Ubuntu 的 WSL integration。
+
+Windows 請開啟 **Ubuntu／WSL 終端機**；macOS／Linux 請開啟主機 Terminal。
+啟動 Docker 後，先確認：
 
 ```sh
+docker version
+git --version
+```
+
+`docker version` 必須同時顯示 Client 與 Server。若找不到 Docker 或無法連線，
+先修復 Docker／WSL 連線，不要繼續建立作業。
+
+第一次建立課程環境時執行：
+
+```sh
+cd ~
 docker pull ghcr.io/computer-organization-at-ncku-ee/co-docker-env:latest
 git clone https://github.com/Computer-Organization-at-NCKU-EE/Docker-Environment.git
 cd Docker-Environment
@@ -18,59 +43,123 @@ cd Docker-Environment
 ./attach.sh
 ```
 
-Windows 請在 WSL 執行。若以前已 clone `Docker-Environment`，不必重複 clone，直接進入該
-目錄並使用既有腳本即可。
+這裡 clone 的是**環境啟動腳本，不是學生作業**。若已有 `Docker-Environment`，
+直接進入既有目錄；若已建立 `comporg-dev-container`，使用既有 `./attach.sh` 即可，
+不用重複 clone 或重建。
 
-### 2. 在課程 container 登入 Classroom50
+看到容器提示字元後，輸入以下指令離開這個 shell，讓後續操作統一在 VS Code：
 
-官方課程 image 目前沒有預裝 GitHub CLI，因此第一次建立 container 時先執行：
+```sh
+exit
+```
+
+`exit` 只離開這次 shell，不會刪除或停止背景容器。先 pull 成功再執行官方腳本；
+`attach.sh` 由 `create.sh` 產生。課程映像沿用官方 `linux/amd64` 環境。
+
+### 2. [VS Code] 連入容器，開啟固定工作區
+
+1. 開啟 VS Code，按 `Ctrl+Shift+P`（macOS：`Cmd+Shift+P`）。
+2. 選擇 **Dev Containers: Attach to Running Container...**。
+3. 選擇 **comporg-dev-container**。
+4. 在新開的容器視窗選擇 **File → Open Folder...**，開啟 `/home/ubuntu/workspace`。
+5. 選擇 **Terminal → New Terminal**；若不是 bash，使用終端機右側「＋」旁的下拉選單開啟 **bash**。
+
+**從現在起，所有作業指令都在這個 VS Code 容器視窗的終端機執行。**
+左下角應顯示 `Container …`，不是只有 `WSL: Ubuntu` 或一般 Windows 視窗。
+以左下角的連線狀態為準，不要只看 GitHub 頭像或 Linux 使用者名稱。
+
+`/home/ubuntu/workspace` 是課程的持久化 volume。不要在 Windows 或 WSL 再 clone
+第二份作業，也不要另開 Windows／WSL 版本的同名資料夾來編輯。
+
+### 3. [容器] 安裝 GitHub CLI 並登入自己的帳號
+
+第一次使用此容器時執行：
 
 ```sh
 sudo apt-get update
 sudo apt-get install -y gh
 gh auth login --hostname github.com --git-protocol https --web
+gh auth setup-git
 gh extension install foundation50/gh-student --pin v1.33.0
 gh student login
-gh auth status
+gh api user --jq .login
+```
+
+`sudo` 若詢問課程容器密碼，輸入 `1234`。依各次 device code 提示，在主機瀏覽器完成授權；
+若容器無法自動開啟瀏覽器，手動開啟畫面提供的網址即可。最後一行必須顯示**自己的
+GitHub 帳號**。這與 Windows、WSL 或 VS Code 的登入可能不同。
+
+若此容器已安裝並登入，不必重裝；確認最後一行的帳號正確即可。課程目前使用
+`gh-student v1.33.0`，不需要為了更新提示自行升級。
+
+### 4. [容器] 接受作業，只 clone 一份到固定路徑
+
+待助教公告作業開放後執行：
+
+```sh
 gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2
 ```
 
-`sudo` 若詢問課程 container 密碼，請輸入 `1234`。GitHub 可能先後顯示兩次 device code；
-兩次都應在瀏覽器登入**自己的學生帳號**完成授權。最後用 `gh auth status` 確認 Active account
-確實是本人，再執行 `accept`。
-
-`accept` 會建立你的 private repository，並在最後印出 `git clone` 指令。請執行畫面印出的
-指令，再進入剛建立的 repository：
+完成後會提供你個人的 private repository URL。把下方的 `YOUR_REPOSITORY_URL`
+換成畫面提供的 **HTTPS URL**，再執行（不要原樣複製佔位文字）：
 
 ```sh
 cd /home/ubuntu/workspace
-git clone <accept 指令顯示的 repository URL>
-cd <你的 Lab 2 repository>
+git clone YOUR_REPOSITORY_URL lab2
+cd lab2
 ```
 
-### 3. 只修改兩個指定檔案
+若 `lab2` 資料夾已存在，先確認它是不是你原本的 Lab 2 作業；不要刪除或再建立第二份。
+
+接著在**目前容器視窗**選擇 **File → Open Folder...**，開啟：
 
 ```text
-asm-prog-assignment/merge.S
-asm-prog-assignment/sudoku.S
+/home/ubuntu/workspace/lab2
 ```
 
-### 4. 建置並進行本機測試
+再選 **Terminal → New Terminal**。後續所有編譯與 Git 指令，都在這個作業根目錄執行。
+可以用 `pwd` 確認位置，用 `git remote -v` 確認連到自己的學生 repository，
+而不是公開 Template。
+
+### 5. [同一容器、同一份作業] 編輯並編譯
+
+在 VS Code 左側 Explorer 開啟並修改：
+
+- `asm-prog-assignment/merge.S`
+- `asm-prog-assignment/sudoku.S`
+
+修改後先 **File → Save All**，再在下方終端機執行：
 
 ```sh
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --target ArraySort Sudoku --parallel
 ```
 
-這一步只確認兩份程式能組譯與連結。正式的 43 項完整測試由 Classroom50 在 submit 後執行。
-課程 container 內沒有 Docker daemon，因此**不要在 container 內執行 `grade-local.sh`**；它不是
-學生完成本作業的必要步驟。
+若 VS Code 自動跳出 **Select a Kit**，按 `Esc` 關閉；本流程使用上面的 CMake 指令，
+不必另選 compiler Kit。成功時會看到 `Built target ArraySort` 與 `Built target Sudoku`，
+產物放在 `build/asm-prog-assignment/`。
 
-### 5. Commit、push，然後正式 submit
+**編譯成功只代表能組譯、連結，不代表答案正確。**原始空骨架也能編譯成功。
+43 項完整測試會在下一步 submit 後由 Classroom50 執行。
+
+不需要安裝自訂 `lab2` 工具、bootstrap 或 doctor，也不需要自己安裝 ISS。
+`grade-local.sh` 需要 Docker daemon，不屬於學生主流程；**不要在課程容器內執行它**。
+
+### 6. [同一容器、同一份作業] 保存並提交
+
+第一次 commit 前設定此 repository 的作者資料，把引號內文字換成自己的資料：
 
 ```sh
 git config user.name "你的 GitHub 帳號"
-git config user.email "你的電子郵件"
+git config user.email "你的 Git 電子郵件"
+```
+
+電子郵件可使用 GitHub 提供的 noreply 位址。這兩行設定 commit 作者，不會切換登入帳號。
+
+每次修改、儲存並編譯後，依序執行；每一行成功後再執行下一行：
+
+```sh
+git status
 git add asm-prog-assignment/merge.S asm-prog-assignment/sudoku.S
 git commit -m "Complete Lab 2"
 git push
@@ -78,93 +167,64 @@ gh student submit
 git pull --ff-only
 ```
 
-第一次 commit 前，請把前兩行引號內的內容換成自己的資料；這只設定目前的 Lab 2 repository。
-**只有 `git push` 不會觸發本作業的正式批改。**每次修改後若要取得新分數，都必須再執行
-一次 `gh student submit`。最後的 `git pull --ff-only` 會同步 Classroom50 建立的 submission
-snapshot，避免下一次 push 出現 non-fast-forward。
+只加入上述兩份程式，不用提交 `build/`。若顯示 `nothing to commit`，
+先確認檔案已儲存；如果這版程式原本就已 commit，可以略過 commit，繼續提交。
+若 push 或 submit 失敗，先處理錯誤，不要把它當成成功。
 
-### 6. 查看批改結果
+**`git push` 只保存進度；`gh student submit` 才會建立新提交並觸發批改。**
+最後的 `git pull --ff-only` 同步 Classroom50 建立的 submission snapshot，
+供下一次修改使用；若同步失敗，保留錯誤訊息詢問助教，不要 force push。
 
-`gh student submit` 完成後會顯示 Actions 與 Releases 連結。也可以執行：
+### 7. [瀏覽器] 查看本次結果，再回到同一容器修改
+
+提交後，在自己的 GitHub repository 開啟 **Actions** 查看本次 `Autograding`，
+完成後到 **Releases** 查看對應 `submit/...` 的總分與 43 個測試結果。
+也可在容器終端機查看最近的批改：
 
 ```sh
 gh run list --workflow autograde.yaml --limit 3
 ```
 
-請先確認最新的 Actions run 成功，再到最新 GitHub Release 查看總分與 43 個測試結果。
-通常需要等待一至數分鐘。若長時間停在 `queued`，先查看
-[GitHub Status](https://www.githubstatus.com/)，不要連續重複 submit。
+Actions 綠色代表批改流程成功執行，**不是取得 100 分**。請查看這次 submission 的結果，
+不要只看舊分數。Classroom50 頁面可能稍後才同步。
+若長時間停在 `queued`，查看 [GitHub Status](https://www.githubstatus.com/)，不要連續重複 submit。
+
+需要修正時，直接回到本容器的 `/home/ubuntu/workspace/lab2`，重複步驟 5–7。
+**Regrade 只重批已提交版本，不會替尚未 submit 的新 commit 建立提交。**
+
+### 下次繼續作業：回到原容器，不再 clone
+
+先啟動 Docker。在主機終端機執行：
+
+```sh
+docker start comporg-dev-container
+```
+
+再依步驟 2 用 VS Code 連入同一容器，直接開啟 `/home/ubuntu/workspace/lab2`。
+不需要重新接受作業、clone 或重裝工具。若顯示找不到容器，先詢問助教，
+不要刪除 workspace volume 或恢復 Docker 原廠設定。
 
 ## 你要修改的檔案
 
-只能在下列兩個固定路徑完成作業；檔名與大小寫不可變更：
+只在下列兩個固定路徑完成作業，檔名與大小寫不可變更：
 
 - `asm-prog-assignment/merge.S`
 - `asm-prog-assignment/sudoku.S`
 
-請勿修改 `.classroom50.yaml`、`.github/` 或嘗試產生自己的 `result.json`。其他檔案可用於
-本機閱讀、建置與練習，並會保留在你的 repository；正式 grader 只讀取上述兩個固定路徑。
+其他檔案可用於閱讀與建置；不要修改 `.classroom50.yaml`、`.github/` 或自行產生成績。
+正式 grader 只讀取上述兩份程式。
 
-## 開發環境
+## 環境補充（不是另一條操作流程）
 
-課程沿用[官方 Lab 文件](https://computer-organization-at-ncku-ee.github.io/lab-documents/)
-的 Docker 流程。Windows 請在 WSL 終端機執行；macOS 請在 Terminal 執行。
+課程容器使用 `co-docker-env:latest`，完整安裝背景可參考
+[官方 Lab 文件](https://computer-organization-at-ncku-ee.github.io/lab-documents/)。
+學生請依本頁 Quick Start 操作，不需要額外在 WSL 建立作業副本。
 
-### 1. 安裝 Docker
+Classroom50 使用的批改映像與開發容器不同；學生不需要自行啟動它：
 
-依課程文件的 **How to install Docker** 完成 Docker 安裝，並確認 `docker version` 可正常執行。
-
-### 2. 下載課程映像
-
-```sh
-docker pull ghcr.io/computer-organization-at-ncku-ee/co-docker-env:latest
+```text
+ghcr.io/computer-organization-at-ncku-ee/co-lab2-grader-v2@sha256:f0ff938b7c554c1d021d5e91e31dfcbaeb810b88892dec6c0c404fac530b42db
 ```
-
-這個 `co-docker-env:latest` 映像只供學生互動式開發。正式批改使用另一個公開映像
-`ghcr.io/computer-organization-at-ncku-ee/co-lab2-grader-v2@sha256:f0ff938b7c554c1d021d5e91e31dfcbaeb810b88892dec6c0c404fac530b42db`，並鎖定不可變的
-digest，不會在批改時臨時使用最新版或 release tag。
-
-### 3. 建立並進入課程容器
-
-```sh
-git clone https://github.com/Computer-Organization-at-NCKU-EE/Docker-Environment.git
-cd Docker-Environment
-./create.sh comporg
-./attach.sh
-```
-
-`attach.sh` 由 `create.sh` 產生。第一次執行前應先確認上一個 `docker pull` 成功，避免腳本改從
-未鎖定版本的 Dockerfile 建置。官方腳本固定使用 `linux/amd64`；Apple Silicon 會由 Docker
-Desktop 執行架構模擬。
-
-### 4. 在容器內取得個人作業
-
-先依上方 Quick Start 的步驟 2 完成 GitHub CLI 安裝與登入。執行
-`gh student accept Computer-Organization-at-NCKU-EE fall-2026 lab2` 後，使用它印出的網址
-clone 個人的 private repository，並在該目錄工作：
-
-```sh
-cd /home/ubuntu/workspace
-git clone <你的 Classroom50 repository URL>
-cd <repository 目錄>
-```
-
-## 本機建置
-
-在課程容器與作業 repository 根目錄執行：
-
-```sh
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --target ArraySort Sudoku --parallel
-```
-
-成功時會在 `build/asm-prog-assignment/` 產生執行檔、`.disasm` 與 `.hex`。公開 C driver 只提供
-基本 smoke test；正式分數以 Classroom50 的逐案例結果為準。本 repository 不再建置學生
-自己的 ISS，也沒有會無限等待 guest halt 的舊版 checker。
-
-`grade-local.sh` 是需要 Docker daemon 的選用工具，無法直接在上述課程 container 內執行，
-也不是學生完成作業的必要步驟。學生只需完成本節的 CMake smoke test，再用 Classroom50
-取得正式完整測試結果。若助教另外要求使用本機 grader，會提供獨立操作方式。
 
 ## 題目一：Array Sort
 
@@ -221,33 +281,9 @@ void sudoku_solver(int32_t *board);
 得到明確的執行失敗結果。外層 wall watchdog 只用來偵測批改基礎設施異常；若它觸發，
 該次批改視為基礎設施錯誤，不會把學生程式記為零分。
 
-## Classroom50 繳交流程
+## 提交政策與截止時間
 
-本作業採 **submit-only** 模式；一般 `git push` 只備份進度，不會產生正式分數。
-
-第一次接受作業請完整依照本文件最前面的 Quick Start；不要跳過安裝、登入或帳號確認。
-之後每次要取得新分數時，在個人作業 repository 內依序執行：
-
-1. 先完成修改與 CMake build，再保存進度：
-
-   ```sh
-   git add asm-prog-assignment/merge.S asm-prog-assignment/sudoku.S
-   git commit -m "Complete Lab 2"
-   git push
-   ```
-
-2. 建立正式提交：
-
-   ```sh
-   gh student submit
-   git pull --ff-only
-   ```
-
-3. 查看最新批改狀態：
-
-   ```sh
-   gh run list --workflow autograde.yaml --limit 3
-   ```
+接受、編譯、提交與查看結果均依本頁 Quick Start，不需要另走其他流程。
 
 提交後，Classroom50 會建立 `submit/...` tag，啟動自動批改，並在 GitHub Release 顯示總分與
 逐案例回饋。本作業截止時間為 **2026 年 10 月 21 日 23:59:00（臺灣時間，UTC+8；對應
